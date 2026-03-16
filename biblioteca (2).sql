@@ -1,663 +1,304 @@
--- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
---
--- Servidor: 127.0.0.1:3306
--- Tiempo de generación: 09-03-2026 a las 17:29:16
--- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.2.12
+CREATE DATABASE IF NOT EXISTS biblioteca;
+USE biblioteca;
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
-SET time_zone = "+00:00";
 
+-- =====================
+-- TABLA AUTOR
+-- =====================
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
+CREATE TABLE tbl_autor (
+aut_codigo INT PRIMARY KEY,
+aut_apellido VARCHAR(45),
+aut_nacimiento DATE,
+aut_muerte DATE
+);
 
---
--- Base de datos: `biblioteca`
---
+INSERT INTO tbl_autor VALUES
+(98,'Smith','1974-12-21','2018-07-21'),
+(123,'Taylor','1980-04-15',NULL),
+(234,'Medina','1977-06-21','2005-09-12'),
+(345,'Wilson','1975-08-29',NULL),
+(432,'Miller','1981-10-26',NULL),
+(456,'García','1978-09-27','2021-12-09'),
+(567,'Davis','1983-03-04','2010-03-28'),
+(678,'Silva','1986-02-02',NULL),
+(765,'López','1976-07-08',NULL),
+(789,'Rodríguez','1985-12-10',NULL),
+(890,'Brown','1982-11-17',NULL),
+(901,'Soto','1979-05-13','2015-11-05');
+
+-- =====================
+-- TABLA LIBROS
+-- =====================
+
+CREATE TABLE tbl_libro (
+lib_isbn BIGINT PRIMARY KEY,
+lib_titulo VARCHAR(255),
+lib_genero VARCHAR(20),
+lib_numeroPaginas INT,
+lib_diasPrestamo TINYINT
+);
+
+INSERT INTO tbl_libro VALUES
+(1111111111,'Libro de prueba','novela',200,7),
+(1234567890,'El Sueño de los Susurros','novela',275,7),
+(1357924680,'El Jardín de las Mariposas Perdidas','novela',536,7),
+(2468135790,'La Melodía de la Oscuridad','romance',189,3),
+(2718281828,'El Bosque de los Suspiros','novela',397,2),
+(3141592653,'El Secreto de las Estrellas Olvidadas','misterio',203,7),
+(5555555555,'La Última Llave del Destino','cuento',503,3),
+(8642097531,'El Reloj de Arena Infinito','novela',321,7),
+(8888888888,'La Ciudad de los Susurros','misterio',274,1),
+(9517530862,'Las Crónicas del Eco Silencioso','fantasía',448,7),
+(9876543210,'El Laberinto de los Recuerdos','cuento',412,7),
+(9999999999,'El Enigma de los Espejos Rotos','romance',156,3);
+
+-- =====================
+-- TABLA SOCIOS
+-- =====================
+
+CREATE TABLE tbl_socio (
+soc_numero INT PRIMARY KEY,
+soc_nombre VARCHAR(45),
+soc_apellido VARCHAR(45),
+soc_direccion VARCHAR(255),
+soc_telefono VARCHAR(10)
+);
+
+INSERT INTO tbl_socio VALUES
+(1,'Ana','Ruiz','Nueva Dir 123','3001112233'),
+(2,'Andrés','Galindo','Avenida del Sol','3002223344'),
+(3,'Juan','González','Calle Principal','301234567'),
+(4,'María','Rodríguez','Carrera del Río','3012345678'),
+(5,'Pedro','Martínez','Calle del Bosque','1234567812'),
+(6,'Ana','López','Avenida Central','6123456781'),
+(7,'Carlos','Sánchez','Calle de la Luna','1123456781'),
+(8,'Laura','Ramírez','Carrera del Mar','1312345678'),
+(9,'Luis','Hernández','Avenida Montaña','6101234567'),
+(10,'Andrea','García','Calle del Sol','111234567');
+
+-- =====================
+-- TABLA PRESTAMO
+-- =====================
+
+CREATE TABLE tbl_prestamo (
+pres_id VARCHAR(20) PRIMARY KEY,
+pres_fechaPrestamo DATE,
+pres_fechaDevolucion DATE,
+soc_copiaNumero INT,
+lib_copiaISBN BIGINT,
+
+FOREIGN KEY (soc_copiaNumero)
+REFERENCES tbl_socio(soc_numero),
+
+FOREIGN KEY (lib_copiaISBN)
+REFERENCES tbl_libro(lib_isbn)
+);
+
+INSERT INTO tbl_prestamo VALUES
+('PR001','2026-03-01','2026-03-08',1,1111111111),
+('PR002','2026-03-02','2026-03-09',2,1234567890),
+('PR003','2026-03-03','2026-03-10',3,1357924680),
+('PR004','2026-03-04','2026-03-11',4,2468135790);
+
+-- =====================
+-- TABLA TIPO AUTORES
+-- =====================
+
+CREATE TABLE tbl_tipoautores (
+copiaISBN BIGINT,
+copiaAutor INT,
+tipoAutor VARCHAR(20),
+
+PRIMARY KEY(copiaISBN,copiaAutor),
+
+FOREIGN KEY (copiaAutor)
+REFERENCES tbl_autor(aut_codigo),
+
+FOREIGN KEY (copiaISBN)
+REFERENCES tbl_libro(lib_isbn)
+);
+
+INSERT INTO tbl_tipoautores VALUES
+(1111111111,98,'Autor'),
+(1234567890,123,'Autor'),
+(1234567890,456,'Coautor'),
+(2468135790,234,'Autor'),
+(3141592653,901,'Autor'),
+(8642097531,345,'Autor');
+
+-- =====================
+-- TABLAS AUDITORIA
+-- =====================
+
+CREATE TABLE audi_libro(
+id_audi INT AUTO_INCREMENT PRIMARY KEY,
+lib_codigo_audi BIGINT,
+titulo_anterior VARCHAR(100),
+titulo_nuevo VARCHAR(100),
+audi_fecha DATETIME,
+audi_usuario VARCHAR(50),
+audi_accion VARCHAR(20)
+);
+
+CREATE TABLE audi_socio(
+id_audi INT AUTO_INCREMENT PRIMARY KEY,
+socNumero_audi INT,
+socNombre_anterior VARCHAR(45),
+socApellido_anterior VARCHAR(45),
+socDireccion_anterior VARCHAR(255),
+socTelefono_anterior VARCHAR(10),
+socNombre_nuevo VARCHAR(45),
+socApellido_nuevo VARCHAR(45),
+socDireccion_nuevo VARCHAR(255),
+socTelefono_nuevo VARCHAR(10),
+audi_fechaModificacion DATETIME,
+audi_usuario VARCHAR(50),
+audi_accion VARCHAR(20)
+);
+
+CREATE TABLE audi_autor(
+id_audi INT AUTO_INCREMENT PRIMARY KEY,
+aut_codigo INT,
+aut_apellido_anterior VARCHAR(45),
+aut_apellido_nuevo VARCHAR(45),
+aut_nacimiento_anterior DATE,
+aut_nacimiento_nuevo DATE,
+aut_muerte_anterior DATE,
+aut_muerte_nuevo DATE,
+audi_fecha DATETIME,
+audi_usuario VARCHAR(50),
+audi_accion VARCHAR(20)
+);
+
+-- =====================
+-- VISTAS
+-- =====================
+
+CREATE VIEW vista_libros_autores AS
+SELECT
+l.lib_titulo,
+a.aut_apellido,
+t.tipoAutor
+FROM tbl_libro l
+JOIN tbl_tipoautores t ON l.lib_isbn = t.copiaISBN
+JOIN tbl_autor a ON t.copiaAutor = a.aut_codigo;
+
+CREATE VIEW vista_prestamos_socios AS
+SELECT
+s.soc_nombre,
+s.soc_apellido,
+l.lib_titulo,
+p.pres_fechaPrestamo,
+p.pres_fechaDevolucion
+FROM tbl_prestamo p
+JOIN tbl_socio s ON p.soc_copiaNumero = s.soc_numero
+JOIN tbl_libro l ON p.lib_copiaISBN = l.lib_isbn;
+
+-- =====================
+-- TRIGGERS
+-- =====================
 
 DELIMITER $$
---
--- Procedimientos
---
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_listaautores` ()   BEGIN
-    -- Selecciona el ID y el nombre completo de los autores
-    SELECT aut_codigo, aut_nombre, aut_apellido 
-    FROM tbl_autor
-    ORDER BY aut_apellido ASC;
+
+CREATE TRIGGER trg_update_libro
+AFTER UPDATE ON tbl_libro
+FOR EACH ROW
+BEGIN
+INSERT INTO audi_libro
+(lib_codigo_audi,titulo_anterior,titulo_nuevo,audi_fecha,audi_usuario,audi_accion)
+VALUES
+(OLD.lib_isbn, OLD.lib_titulo, NEW.lib_titulo, NOW(), USER(), 'UPDATE');
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `get_tipoautor` (IN `p_aut_codigo` INT)   BEGIN
-    -- Busca el tipo de autor basado en su código único
-    SELECT aut_codigo, aut_nombre, aut_tipo 
-    FROM tbl_autor 
-    WHERE aut_codigo = p_aut_codigo;
-END$$
-
-CREATE DEFINER=`root`@`localhost` PROCEDURE `insert_libro` (IN `p_titulo` VARCHAR(100), IN `p_isbn` VARCHAR(20), IN `p_editorial` VARCHAR(45), IN `p_paginas` INT, IN `p_autor_id` INT)   BEGIN
-    -- Inserta los datos recibidos en la tabla de libros
-    INSERT INTO tbl_libro (lib_titulo, lib_isbn, lib_editorial, lib_paginas, fk_autor)
-    VALUES (p_titulo, p_isbn, p_editorial, p_paginas, p_autor_id);
-    
-    -- Mensaje de confirmación
-    SELECT 'Libro insertado correctamente' AS Mensaje;
-END$$
-
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_ActualizarContacto` (IN `p_num` INT, IN `p_nuevaDir` VARCHAR(255), IN `p_nuevoTel` VARCHAR(10))   BEGIN
-    UPDATE tbl_socio 
-    SET soc_direccion = p_nuevaDir, soc_telefono = p_nuevoTel
-    WHERE soc_numero = p_num;
-END$$
-
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_BuscarLibro` (IN `p_titulo` VARCHAR(255))   BEGIN
-    SELECT * FROM tbl_libro WHERE lib_titulo LIKE CONCAT('%', p_titulo, '%');
-END$$
-
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_EliminarLibro` (IN `p_isbn` BIGINT)   BEGIN
-    DELETE FROM tbl_libro WHERE lib_isbn = p_isbn;
-END$$
-
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_InsertarSocio` (IN `p_num` INT, IN `p_nom` VARCHAR(45), IN `p_ape` VARCHAR(45), IN `p_dir` VARCHAR(255), IN `p_tel` VARCHAR(10))   BEGIN
-    INSERT INTO tbl_socio (soc_numero, soc_nombre, soc_apellido, soc_direccion, soc_telefono)
-    VALUES (p_num, p_nom, p_ape, p_dir, p_tel);
-END$$
-
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_LibrosEnPrestamo` ()   BEGIN
-    SELECT l.lib_titulo, s.soc_nombre, p.pres_fechaPrestamo
-    FROM tbl_libro l
-    INNER JOIN tbl_prestamo p ON l.lib_isbn = p.lib_copiaISBN
-    INNER JOIN tbl_socio s ON p.soc_copiaNumero = s.soc_numero;
-END$$
-
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_ListarSociosYPrestamos` ()   BEGIN
-    SELECT s.*, p.pres_id, p.pres_fechaPrestamo
-    FROM tbl_socio s
-    LEFT JOIN tbl_prestamo p ON s.soc_numero = p.soc_copiaNumero;
-END$$
-
---
--- Funciones
---
-CREATE DEFINER=`root`@`localhost` FUNCTION `fn_DiasPrestado` (`p_idlibro` BIGINT) RETURNS INT(11) DETERMINISTIC BEGIN
-    DECLARE v_dias INT;
-    SELECT DATEDIFF(pres_fechaDevolucion, pres_fechaPrestamo) INTO v_dias
-    FROM tbl_prestamo 
-    WHERE lib_copiaISBN = p_idlibro 
-    LIMIT 1;
-    RETURN v_dias;
-END$$
-
-CREATE DEFINER=`root`@`localhost` FUNCTION `fn_TotalSocios` () RETURNS INT(11) DETERMINISTIC BEGIN
-    DECLARE v_total INT;
-    SELECT COUNT(*) INTO v_total FROM tbl_socio;
-    RETURN v_total;
-END$$
-
-DELIMITER ;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `audi_libro`
---
-
-CREATE TABLE `audi_libro` (
-  `id_audi` int(11) NOT NULL,
-  `lib_codigo_audi` int(11) DEFAULT NULL,
-  `titulo_anterior` varchar(100) DEFAULT NULL,
-  `titulo_nuevo` varchar(100) DEFAULT NULL,
-  `autor_anterior` int(11) DEFAULT NULL,
-  `autor_nuevo` int(11) DEFAULT NULL,
-  `audi_fecha` datetime DEFAULT NULL,
-  `audi_usuario` varchar(50) DEFAULT NULL,
-  `audi_accion` varchar(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `audi_libro`
---
-
-INSERT INTO `audi_libro` (`id_audi`, `lib_codigo_audi`, `titulo_anterior`, `titulo_nuevo`, `autor_anterior`, `autor_nuevo`, `audi_fecha`, `audi_usuario`, `audi_accion`) VALUES
-(1, 1111111111, NULL, 'Libro de prueba', NULL, NULL, '2026-03-09 09:26:03', 'root@localhost', 'Inserción');
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `audi_socio`
---
-
-CREATE TABLE `audi_socio` (
-  `id_audi` int(11) NOT NULL,
-  `socNumero_audi` int(11) DEFAULT NULL,
-  `socNombre_anterior` varchar(45) DEFAULT NULL,
-  `socApellido_anterior` varchar(45) DEFAULT NULL,
-  `socDireccion_anterior` varchar(255) DEFAULT NULL,
-  `socTelefono_anterior` varchar(10) DEFAULT NULL,
-  `socNombre_nuevo` varchar(45) DEFAULT NULL,
-  `socApellido_nuevo` varchar(45) DEFAULT NULL,
-  `socDireccion_nuevo` varchar(255) DEFAULT NULL,
-  `socTelefono_nuevo` varchar(10) DEFAULT NULL,
-  `audi_fechaModificacion` datetime DEFAULT NULL,
-  `audi_usuario` varchar(50) DEFAULT NULL,
-  `audi_accion` varchar(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `audi_socio`
---
-
-INSERT INTO `audi_socio` (`id_audi`, `socNumero_audi`, `socNombre_anterior`, `socApellido_anterior`, `socDireccion_anterior`, `socTelefono_anterior`, `socNombre_nuevo`, `socApellido_nuevo`, `socDireccion_nuevo`, `socTelefono_nuevo`, `audi_fechaModificacion`, `audi_usuario`, `audi_accion`) VALUES
-(1, 1234567, 'yefer', 'y', 'actual 13', 'act800', 'yefer', 'y', 'Calle 72 # 2', '2928088', '2026-03-05 07:26:17', 'root@localhost', 'Actualización');
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `tbl_autor`
---
-
-CREATE TABLE `tbl_autor` (
-  `aut_codigo` int(11) NOT NULL,
-  `aut_apellido` varchar(45) DEFAULT NULL,
-  `aut_nacimiento` date DEFAULT NULL,
-  `aut_muerte` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `tbl_autor`
---
-
-INSERT INTO `tbl_autor` (`aut_codigo`, `aut_apellido`, `aut_nacimiento`, `aut_muerte`) VALUES
-(98, 'Smith', '1974-12-21', '2018-07-21'),
-(123, 'Taylor', '1980-04-15', NULL),
-(234, 'Medina', '1977-06-21', '2005-09-12'),
-(345, 'Wilson', '1975-08-29', NULL),
-(432, 'Miller', '1981-10-26', NULL),
-(456, 'García', '1978-09-27', '2021-12-09'),
-(567, 'Davis', '1983-03-04', '2010-03-28'),
-(678, 'Silva', '1986-02-02', NULL),
-(765, 'López', '1976-07-08', NULL),
-(789, 'Rodríguez', '1985-12-10', NULL),
-(890, 'Brown', '1982-11-17', NULL),
-(901, 'Soto', '1979-05-13', '2015-11-05');
-
---
--- Disparadores `tbl_autor`
---
-DELIMITER $$
-CREATE TRIGGER `autor_after_delete` AFTER DELETE ON `tbl_autor` FOR EACH ROW BEGIN
-
-INSERT INTO audi_autor(
-aut_codigo,
-aut_apellido_anterior,
-aut_nacimiento_anterior,
-aut_muerte_anterior,
-audi_fecha,
-audi_usuario,
-audi_accion
-)
-
-VALUES(
-OLD.AUT_CODIGO,
-OLD.AUT_APELLIDO,
-OLD.AUT_NACIMIENTO,
-OLD.AUT_MUERTE,
+CREATE TRIGGER trg_update_socio
+AFTER UPDATE ON tbl_socio
+FOR EACH ROW
+BEGIN
+INSERT INTO audi_socio
+VALUES
+(NULL,
+OLD.soc_numero,
+OLD.soc_nombre,
+OLD.soc_apellido,
+OLD.soc_direccion,
+OLD.soc_telefono,
+NEW.soc_nombre,
+NEW.soc_apellido,
+NEW.soc_direccion,
+NEW.soc_telefono,
 NOW(),
-CURRENT_USER(),
-'DELETE'
-);
+USER(),
+'UPDATE');
+END$$
 
-END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `autor_before_update` BEFORE UPDATE ON `tbl_autor` FOR EACH ROW BEGIN
-
-INSERT INTO audi_autor(
-aut_codigo,
-aut_apellido_anterior,
-aut_apellido_nuevo,
-aut_nacimiento_anterior,
-aut_nacimiento_nuevo,
-aut_muerte_anterior,
-aut_muerte_nuevo,
-audi_fecha,
-audi_usuario,
-audi_accion
-)
-
-VALUES(
-OLD.AUT_CODIGO,
-OLD.AUT_APELLIDO,
-NEW.AUT_APELLIDO,
-OLD.AUT_NACIMIENTO,
-NEW.AUT_NACIMIENTO,
-OLD.AUT_MUERTE,
-NEW.AUT_MUERTE,
+CREATE TRIGGER trg_update_autor
+AFTER UPDATE ON tbl_autor
+FOR EACH ROW
+BEGIN
+INSERT INTO audi_autor
+VALUES
+(NULL,
+OLD.aut_codigo,
+OLD.aut_apellido,
+NEW.aut_apellido,
+OLD.aut_nacimiento,
+NEW.aut_nacimiento,
+OLD.aut_muerte,
+NEW.aut_muerte,
 NOW(),
-CURRENT_USER(),
-'UPDATE'
-);
+USER(),
+'UPDATE');
+END$$
 
-END
-$$
 DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `tbl_autor_before_update` BEFORE UPDATE ON `tbl_autor` FOR EACH ROW BEGIN
 
-INSERT INTO audi_autor(
-aut_codigo,
-aut_apellido_anterior,
-aut_apellido_nuevo,
-aut_nacimiento_anterior,
-aut_nacimiento_nuevo,
-aut_muerte_anterior,
-aut_muerte_nuevo,
-audi_fecha,
-audi_usuario,
-audi_accion
+-- =====================
+-- PROCEDIMIENTOS
+-- =====================
+
+DELIMITER $$
+
+CREATE PROCEDURE ver_libros()
+BEGIN
+SELECT * FROM tbl_libro;
+END$$
+
+CREATE PROCEDURE ver_socios()
+BEGIN
+SELECT * FROM tbl_socio;
+END$$
+
+CREATE PROCEDURE registrar_prestamo(
+IN idPrestamo VARCHAR(20),
+IN fechaPrestamo DATE,
+IN fechaDevolucion DATE,
+IN socio INT,
+IN libro BIGINT
 )
+BEGIN
+INSERT INTO tbl_prestamo
+VALUES(idPrestamo,fechaPrestamo,fechaDevolucion,socio,libro);
+END$$
 
-VALUES(
-OLD.AUT_CODIGO,
-OLD.AUT_APELLIDO,
-NEW.AUT_APELLIDO,
-OLD.AUT_NACIMIENTO,
-NEW.AUT_NACIMIENTO,
-OLD.AUT_MUERTE,
-NEW.AUT_MUERTE,
-NOW(),
-CURRENT_USER(),
-'UPDATE'
-);
-
-END
-$$
 DELIMITER ;
 
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `tbl_libro`
---
-
-CREATE TABLE `tbl_libro` (
-  `lib_isbn` bigint(20) NOT NULL,
-  `lib_titulo` varchar(255) DEFAULT NULL,
-  `lib_genero` varchar(20) DEFAULT NULL,
-  `lib_numeroPaginas` int(11) DEFAULT NULL,
-  `lib_diasPrestamo` tinyint(4) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `tbl_libro`
---
-
-INSERT INTO `tbl_libro` (`lib_isbn`, `lib_titulo`, `lib_genero`, `lib_numeroPaginas`, `lib_diasPrestamo`) VALUES
-(1111111111, 'Libro de prueba', 'novela', 200, 7),
-(1234567890, 'El Sueño de los Susurros', 'novela', 275, 7),
-(1357924680, 'El Jardín de las Mariposas Perdidas', 'novela', 536, 7),
-(2468135790, 'La Melodía de la Oscuridad', 'romance', 189, 3),
-(2718281828, 'El Bosque de los Suspiros', 'novela', 397, 2),
-(3141592653, 'El Secreto de las Estrellas Olvidadas', 'misterio', 203, 7),
-(5555555555, 'La Última Llave del Destino', 'cuento', 503, 3),
-(8642097531, 'El Reloj de Arena Infinito', 'novela', 321, 7),
-(8888888888, 'La Ciudad de los Susurros', 'misterio', 274, 1),
-(9517530862, 'Las Crónicas del Eco Silencioso', 'fantasía', 448, 7),
-(9876543210, 'El Laberinto de los Recuerdos', 'cuento', 412, 7),
-(9999999999, 'El Enigma de los Espejos Rotos', 'romance', 156, 3);
-
---
--- Disparadores `tbl_libro`
---
-DELIMITER $$
-CREATE TRIGGER `libro_after_delete` AFTER DELETE ON `tbl_libro` FOR EACH ROW BEGIN
-    INSERT INTO audi_libro (lib_codigo_audi, titulo_anterior, audi_fecha, audi_usuario, audi_accion)
-    VALUES (OLD.tbl.libro, OLD.lib_titulo, NOW(), CURRENT_USER(), 'Eliminación');
-END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `libro_after_insert` AFTER INSERT ON `tbl_libro` FOR EACH ROW BEGIN
-INSERT INTO audi_libro(
-lib_codigo_audi,
-titulo_nuevo,
-audi_fecha,
-audi_usuario,
-audi_accion
-)
-VALUES(
-NEW.lib_isbn,
-NEW.lib_titulo,
-NOW(),
-CURRENT_USER(),
-'Inserción'
-);
-END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `libro_before_update` BEFORE UPDATE ON `tbl_libro` FOR EACH ROW BEGIN
-    INSERT INTO audi_libro (lib_codigo_audi, titulo_anterior, titulo_nuevo, audi_fecha, audi_usuario, audi_accion)
-    VALUES (OLD.tbl.libro, OLD.lib_titulo, NEW.lib_titulo, NOW(), CURRENT_USER(), 'Actualización');
-END
-$$
-DELIMITER ;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `tbl_prestamo`
---
-
-CREATE TABLE `tbl_prestamo` (
-  `pres_id` varchar(20) NOT NULL,
-  `pres_fechaPrestamo` date DEFAULT NULL,
-  `pres_fechaDevolucion` date DEFAULT NULL,
-  `soc_copiaNumero` int(11) DEFAULT NULL,
-  `lib_copiaISBN` bigint(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `tbl_socio`
---
-
-CREATE TABLE `tbl_socio` (
-  `soc_numero` int(11) NOT NULL,
-  `soc_nombre` varchar(45) DEFAULT NULL,
-  `soc_apellido` varchar(45) DEFAULT NULL,
-  `soc_direccion` varchar(255) DEFAULT NULL,
-  `soc_telefono` varchar(10) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `tbl_socio`
---
-
-INSERT INTO `tbl_socio` (`soc_numero`, `soc_nombre`, `soc_apellido`, `soc_direccion`, `soc_telefono`) VALUES
-(1, 'Ana', 'Ruiz', 'Nueva Dir 123', '3001112233'),
-(2, 'Andrés Felipe', 'Galindo Luna', 'Avenida del Sol 456, Pueblo Nuevo, Madrid', '212345678'),
-(3, 'Juan', 'González', 'Calle Principal 789, Villa Flores, Valencia', '301234567'),
-(4, 'María', 'Rodríguez', 'Carrera del Río 321, El Pueblo, Sevilla', '3012345678'),
-(5, 'Pedro', 'Martínez', 'Calle del Bosque 654, Los Pinos, Málaga', '1234567812'),
-(6, 'Ana', 'López', 'Avenida Central 987, Villa Hermosa, Bilbao', '6123456781'),
-(7, 'Carlos', 'Sánchez', 'Calle de la Luna 234, El Prado, Alicante', '1123456781'),
-(8, 'Laura', 'Ramírez', 'Carrera del Mar 567, Playa Azul, Palma de Mallorca', '1312345678'),
-(9, 'Luis', 'Hernández', 'Avenida de la Montaña 890, Monte Verde, Granada', '6101234567'),
-(10, 'Andrea', 'García', 'Calle del Sol 432, La Colina, Zaragoza', '111234567'),
-(11, 'Alejandro', 'Torres', 'Carrera del Oeste 765, Ciudad Nueva, Murcia', '491234567'),
-(12, 'Sofía', 'Morales', 'Avenida del Mar 098, Costa Brava, Gijón', '5512345678'),
-(13, 'Carlos', 'Ruiz', 'Calle Falsa 123', '3009998877'),
-(15, 'Pedro', 'Picapiedra', 'Calle Rocosa 1', '3001234567'),
-(1234567, 'yefer', 'y', 'Calle 72 # 2', '2928088');
-
---
--- Disparadores `tbl_socio`
---
-DELIMITER $$
-CREATE TRIGGER `socio_after_delete` AFTER DELETE ON `tbl_socio` FOR EACH ROW BEGIN
-    INSERT INTO audi_socio (
-        socNumero_audi, 
-        socNombre_anterior, 
-        socApellido_anterior, 
-        socDireccion_anterior, 
-        socTelefono_anterior,
-        audi_fechaModificacion, 
-        audi_usuario, 
-        audi_accion
-    ) 
-    VALUES (
-        OLD.soc_numero, 
-        OLD.soc_nombre, 
-        OLD.soc_apellido, 
-        OLD.soc_direccion, 
-        OLD.soc_telefono,
-        NOW(), 
-        CURRENT_USER(), 
-        'Eliminación'
-    );
-END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `socio_after_insert` AFTER INSERT ON `tbl_socio` FOR EACH ROW BEGIN
-    INSERT INTO audi_socio(
-        socNumero_audi,
-        socNombre_nuevo,
-        socApellido_nuevo,
-        socDireccion_nuevo,
-        socTelefono_nuevo,
-        audi_fechaModificacion,
-        audi_usuario,
-        audi_accion
-    )
-    VALUES(
-        NEW.soc_numero,
-        NEW.soc_nombre,
-        NEW.soc_apellido,
-        NEW.soc_direccion,
-        NEW.soc_telefono,
-        NOW(),
-        CURRENT_USER(),
-        'Inserción'
-    );
-END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `socio_before_update` BEFORE UPDATE ON `tbl_socio` FOR EACH ROW BEGIN
-       INSERT INTO audi_socio (
-           socnumero_audi,
-           socNombre_anterior, socApellido_anterior, socDireccion_anterior, socTelefono_anterior,
-        socNombre_nuevo, socApellido_nuevo, socDireccion_nuevo, socTelefono_nuevo,
-        audi_fechaModificacion, audi_usuario, audi_accion
-    ) 
-    VALUES (
-        NEW.soc_numero, 
-        OLD.soc_nombre, OLD.soc_apellido, OLD.soc_direccion, OLD.soc_telefono,
-        NEW.soc_nombre, NEW.soc_apellido, NEW.soc_direccion, NEW.soc_telefono,
-        NOW(), CURRENT_USER(), 'Actualización'
-    );
-END
-$$
-DELIMITER ;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `tbl_tipoautores`
---
-
-CREATE TABLE `tbl_tipoautores` (
-  `copiaISBN` bigint(20) NOT NULL,
-  `copiaAutor` int(11) NOT NULL,
-  `tipoAutor` varchar(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `tbl_tipoautores`
---
-
-INSERT INTO `tbl_tipoautores` (`copiaISBN`, `copiaAutor`, `tipoAutor`) VALUES
-(1234567890, 123, 'Autor'),
-(1234567890, 456, 'Coautor'),
-(1357924680, 123, 'Traductor'),
-(2468135790, 234, 'Autor'),
-(2718281828, 789, 'Traductor'),
-(3141592653, 901, 'Autor'),
-(5555555555, 678, 'Autor'),
-(8642097531, 345, 'Autor'),
-(8888888888, 234, 'Autor'),
-(8888888888, 345, 'Coautor'),
-(9517530862, 432, 'Traductor'),
-(9517530862, 890, 'Autor'),
-(9876543210, 567, 'Autor'),
-(9999999999, 98, 'Autor');
-
--- --------------------------------------------------------
-
---
--- Estructura Stand-in para la vista `visita_aprendices`
--- (Véase abajo para la vista actual)
---
-CREATE TABLE `visita_aprendices` (
-);
-
--- --------------------------------------------------------
-
---
--- Estructura Stand-in para la vista `vista_libros_autores`
--- (Véase abajo para la vista actual)
---
-CREATE TABLE `vista_libros_autores` (
-`lib_titulo` varchar(255)
-,`aut_apellido` varchar(45)
-,`tipoAutor` varchar(20)
-);
-
--- --------------------------------------------------------
-
---
--- Estructura Stand-in para la vista `vista_prestamos_socios`
--- (Véase abajo para la vista actual)
---
-CREATE TABLE `vista_prestamos_socios` (
-`soc_nombre` varchar(45)
-,`soc_apellido` varchar(45)
-,`lib_titulo` varchar(255)
-,`pres_fechaPrestamo` date
-,`pres_fechaDevolucion` date
-);
-
--- --------------------------------------------------------
-
---
--- Estructura para la vista `visita_aprendices`
---
-DROP TABLE IF EXISTS `visita_aprendices`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `visita_aprendices`  AS SELECT `aprendiz`.`apr_nombre` AS `apr_nombre`, `aprendiz`.`apr_correo` AS `apr_correo` FROM `aprendiz` ORDER BY `aprendiz`.`apr_nombre` ASC ;
-
--- --------------------------------------------------------
-
---
--- Estructura para la vista `vista_libros_autores`
---
-DROP TABLE IF EXISTS `vista_libros_autores`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_libros_autores`  AS SELECT `l`.`lib_titulo` AS `lib_titulo`, `a`.`aut_apellido` AS `aut_apellido`, `t`.`tipoAutor` AS `tipoAutor` FROM ((`tbl_libro` `l` join `tbl_tipoautores` `t` on(`l`.`lib_isbn` = `t`.`copiaISBN`)) join `tbl_autor` `a` on(`t`.`copiaAutor` = `a`.`aut_codigo`)) ;
-
--- --------------------------------------------------------
-
---
--- Estructura para la vista `vista_prestamos_socios`
---
-DROP TABLE IF EXISTS `vista_prestamos_socios`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_prestamos_socios`  AS SELECT `s`.`soc_nombre` AS `soc_nombre`, `s`.`soc_apellido` AS `soc_apellido`, `l`.`lib_titulo` AS `lib_titulo`, `p`.`pres_fechaPrestamo` AS `pres_fechaPrestamo`, `p`.`pres_fechaDevolucion` AS `pres_fechaDevolucion` FROM ((`tbl_prestamo` `p` join `tbl_socio` `s` on(`p`.`soc_copiaNumero` = `s`.`soc_numero`)) join `tbl_libro` `l` on(`p`.`lib_copiaISBN` = `l`.`lib_isbn`)) ;
-
---
--- Índices para tablas volcadas
---
-
---
--- Indices de la tabla `audi_libro`
---
-ALTER TABLE `audi_libro`
-  ADD PRIMARY KEY (`id_audi`);
-
---
--- Indices de la tabla `audi_socio`
---
-ALTER TABLE `audi_socio`
-  ADD PRIMARY KEY (`id_audi`);
-
---
--- Indices de la tabla `tbl_autor`
---
-ALTER TABLE `tbl_autor`
-  ADD PRIMARY KEY (`aut_codigo`);
-
---
--- Indices de la tabla `tbl_libro`
---
-ALTER TABLE `tbl_libro`
-  ADD PRIMARY KEY (`lib_isbn`),
-  ADD KEY `idx_lib_titulo` (`lib_titulo`);
-
---
--- Indices de la tabla `tbl_prestamo`
---
-ALTER TABLE `tbl_prestamo`
-  ADD PRIMARY KEY (`pres_id`),
-  ADD KEY `fk_prestamo_socio` (`soc_copiaNumero`),
-  ADD KEY `fk_prestamo_libro` (`lib_copiaISBN`);
-
---
--- Indices de la tabla `tbl_socio`
---
-ALTER TABLE `tbl_socio`
-  ADD PRIMARY KEY (`soc_numero`);
-
---
--- Indices de la tabla `tbl_tipoautores`
---
-ALTER TABLE `tbl_tipoautores`
-  ADD PRIMARY KEY (`copiaISBN`,`copiaAutor`),
-  ADD KEY `fk_tipoautores_autor` (`copiaAutor`);
-
---
--- AUTO_INCREMENT de las tablas volcadas
---
-
---
--- AUTO_INCREMENT de la tabla `audi_libro`
---
-ALTER TABLE `audi_libro`
-  MODIFY `id_audi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT de la tabla `audi_socio`
---
-ALTER TABLE `audi_socio`
-  MODIFY `id_audi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- Restricciones para tablas volcadas
---
-
---
--- Filtros para la tabla `tbl_prestamo`
---
-ALTER TABLE `tbl_prestamo`
-  ADD CONSTRAINT `fk_prestamo_libro` FOREIGN KEY (`lib_copiaISBN`) REFERENCES `tbl_libro` (`lib_isbn`),
-  ADD CONSTRAINT `fk_prestamo_socio` FOREIGN KEY (`soc_copiaNumero`) REFERENCES `tbl_socio` (`soc_numero`);
-
---
--- Filtros para la tabla `tbl_tipoautores`
---
-ALTER TABLE `tbl_tipoautores`
-  ADD CONSTRAINT `fk_tipoautores_autor` FOREIGN KEY (`copiaAutor`) REFERENCES `tbl_autor` (`aut_codigo`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_tipoautores_libro` FOREIGN KEY (`copiaISBN`) REFERENCES `tbl_libro` (`lib_isbn`) ON DELETE CASCADE;
+-- =====================
+-- EVENTO
+-- =====================
 
 DELIMITER $$
---
--- Eventos
---
-CREATE DEFINER=`root`@`localhost` EVENT `eliminar_prestamos_vencidos` ON SCHEDULE EVERY 1 DAY STARTS '2026-03-09 09:19:06' ENDS '2027-03-09 09:19:06' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
+
+CREATE EVENT eliminar_prestamos_vencidos
+ON SCHEDULE EVERY 1 DAY
+DO
 DELETE FROM tbl_prestamo
 WHERE pres_fechaDevolucion < CURDATE();
-END$$
+
+$$
 
 DELIMITER ;
-COMMIT;
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+COMMIT;
